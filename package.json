@@ -1,0 +1,23 @@
+{
+  "name": "project-1-ticketing-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.886.0",
+    "@aws-sdk/lib-dynamodb": "^3.886.0",
+    "express": "^5.1.0",
+    "uuid": "^13.0.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "jest": "^30.1.3"
+  }
+}
