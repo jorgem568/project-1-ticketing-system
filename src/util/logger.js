@@ -8,8 +8,8 @@ const logger = createLogger({
     })
   ),
   transports: [
-    new transports.Console(), // log to the console
-    new transports.File({ filename: "logs/app.log" }), // log to a file
+    // new transports.Console(), // log to the console
+    new transports.File({ filename: "./src/logs/app.log" }), // log to a file
   ],
 });
 

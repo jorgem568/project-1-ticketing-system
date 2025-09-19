@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Manager Dashboard - Ticketing System</title>
+  </head>
+  <body class="bg-gray-100">
+    <nav class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <h1 class="text-xl font-semibold text-gray-800">Manager Dashboard</h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a href="dashboard.html" class="text-gray-600 hover:text-gray-800 transition">
+              Employee Dashboard
+            </a>
+            <a href="profile.html" class="text-gray-600 hover:text-gray-800 transition">
+              Profile
+            </a>
+            <span class="text-gray-600" id="welcomeMessage">Welcome!</span>
+            <button 
+              id="logoutBtn"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div class="px-4 py-6 sm:px-0">
+        <div class="bg-white shadow rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-2xl font-bold text-gray-800">All Tickets</h2>
+              <div class="flex space-x-4">
+                <button 
+                  id="refreshTickets"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+                >
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="mb-6">
+              <div class="flex flex-wrap gap-4">
+                <button 
+                  id="filterAll" 
+                  class="px-4 py-2 rounded-md text-sm font-medium transition bg-blue-100 text-blue-800 border border-blue-200"
+                >
+                  All Tickets
+                </button>
+                <button 
+                  id="filterPending" 
+                  class="px-4 py-2 rounded-md text-sm font-medium transition bg-gray-100 text-gray-800 border border-gray-200 hover:bg-yellow-100 hover:text-yellow-800 hover:border-yellow-200"
+                >
+                  Pending
+                </button>
+                <button 
+                  id="filterApproved" 
+                  class="px-4 py-2 rounded-md text-sm font-medium transition bg-gray-100 text-gray-800 border border-gray-200 hover:bg-green-100 hover:text-green-800 hover:border-green-200"
+                >
+                  Approved
+                </button>
+                <button 
+                  id="filterDenied" 
+                  class="px-4 py-2 rounded-md text-sm font-medium transition bg-gray-100 text-gray-800 border border-gray-200 hover:bg-red-100 hover:text-red-800 hover:border-red-200"
+                >
+                  Denied
+                </button>
+              </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-8">
+              <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <p class="mt-2 text-gray-600">Loading tickets...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-red-800">Error loading tickets</h3>
+                  <div class="mt-2 text-sm text-red-700">
+                    <p id="errorMessage">Unable to load tickets. Please try again.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No tickets found</h3>
+              <p class="mt-1 text-sm text-gray-500">No tickets match the current filter.</p>
+            </div>
+
+            <!-- Tickets List -->
+            <div id="ticketsList" class="hidden space-y-4">
+              <!-- Tickets will be dynamically inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Ticket Management Modal -->
+    <div id="ticketModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Manage Ticket</h3>
+            <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div id="modalContent" class="space-y-4">
+            <!-- Modal content will be dynamically inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Check if user is logged in and is a manager
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        // Redirect to login if no token
+        window.location.href = 'index.html';
+      }
+
+      // Get user info from token
+      function getUserFromToken() {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload;
+        } catch (error) {
+          console.error('Error decoding token:', error);
+          return null;
+        }
+      }
+
+      // Update welcome message
+      const userInfo = getUserFromToken();
+      if (userInfo) {
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${userInfo.username}!`;
+        
+        // Redirect if not a manager
+        if (userInfo.role !== 'Manager') {
+          window.location.href = 'dashboard.html';
+        }
+      }
+
+      let allTickets = [];
+      let currentFilter = 'all';
+
+      // Status badge styling
+      function getStatusBadgeClass(status) {
+        switch (status) {
+          case 'Pending':
+            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+          case 'Approved':
+            return 'bg-green-100 text-green-800 border-green-200';
+          case 'Denied':
+            return 'bg-red-100 text-red-800 border-red-200';
+          default:
+            return 'bg-gray-100 text-gray-800 border-gray-200';
+        }
+      }
+
+      // Type badge styling
+      function getTypeBadgeClass(type) {
+        switch (type) {
+          case 'Travel':
+            return 'bg-blue-100 text-blue-800';
+          case 'Food':
+            return 'bg-orange-100 text-orange-800';
+          case 'Lodging':
+            return 'bg-purple-100 text-purple-800';
+          default:
+            return 'bg-gray-100 text-gray-800';
+        }
+      }
+
+      // Format currency
+      function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(amount);
+      }
+
+      // Format date
+      function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      // Create ticket card HTML for managers
+      function createTicketCard(ticket) {
+        return `
+          <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-lg font-medium text-gray-900">${ticket.type || 'Other'}</h3>
+                <p class="text-sm text-gray-500">ID: ${ticket.id}</p>
+                <p class="text-sm text-gray-500">Author: ${ticket.author}</p>
+              </div>
+              <div class="text-right">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeClass(ticket.status)}">
+                  ${ticket.status}
+                </span>
+                <p class="text-lg font-semibold text-gray-900 mt-1">${formatCurrency(ticket.amount)}</p>
+              </div>
+            </div>
+            <p class="text-gray-600 text-sm line-clamp-2 mb-4">${ticket.description}</p>
+            <div class="flex justify-between items-center">
+              <div class="text-xs text-gray-500">
+                <span>Created: ${formatDate(ticket.createdAt || new Date().toISOString())}</span>
+                ${ticket.resolver ? `<span class="ml-4">Resolved by: ${ticket.resolver}</span>` : ''}
+              </div>
+              <div class="flex space-x-2">
+                <button 
+                  onclick="showTicketManagement('${ticket.id}')"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition"
+                >
+                  Manage
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Show ticket management modal
+      function showTicketManagement(ticketId) {
+        const ticket = allTickets.find(t => t.id === ticketId);
+        if (!ticket) return;
+
+        const modalContent = document.getElementById('modalContent');
+        modalContent.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-medium text-gray-900 mb-2">Ticket Information</h4>
+              <dl class="space-y-2">
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">ID</dt>
+                  <dd class="text-sm text-gray-900">${ticket.id}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Author</dt>
+                  <dd class="text-sm text-gray-900">${ticket.author}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Type</dt>
+                  <dd class="text-sm text-gray-900">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeClass(ticket.type)}">
+                      ${ticket.type || 'Other'}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Amount</dt>
+                  <dd class="text-sm text-gray-900 font-semibold">${formatCurrency(ticket.amount)}</dd>
+                </div>
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Current Status</dt>
+                  <dd class="text-sm text-gray-900">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeClass(ticket.status)}">
+                      ${ticket.status}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="font-medium text-gray-900 mb-2">Description</h4>
+              <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">${ticket.description}</p>
+            </div>
+          </div>
+          
+          <div class="mt-6 pt-4 border-t border-gray-200">
+            <h4 class="font-medium text-gray-900 mb-3">Update Status</h4>
+            <form id="statusUpdateForm" class="space-y-4">
+              <div>
+                <label for="newStatus" class="block text-sm font-medium text-gray-700 mb-2">
+                  New Status
+                </label>
+                <select 
+                  id="newStatus" 
+                  name="newStatus" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select new status</option>
+                  <option value="Pending" ${ticket.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                  <option value="Approved" ${ticket.status === 'Approved' ? 'selected' : ''}>Approved</option>
+                  <option value="Denied" ${ticket.status === 'Denied' ? 'selected' : ''}>Denied</option>
+                </select>
+              </div>
+              <div class="flex justify-end space-x-3">
+                <button 
+                  type="button"
+                  id="cancelUpdate"
+                  class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition"
+                >
+                  Update Status
+                </button>
+              </div>
+            </form>
+          </div>
+        `;
+
+        // Handle status update form
+        document.getElementById('statusUpdateForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const newStatus = document.getElementById('newStatus').value;
+          
+          if (newStatus === ticket.status) {
+            alert('Please select a different status.');
+            return;
+          }
+
+          try {
+            const response = await fetch(`http://localhost:3000/tickets/${ticket.id}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'current-user': userInfo.id
+              },
+              body: JSON.stringify({ status: newStatus })
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const updatedTicket = await response.json();
+            console.log('Ticket updated successfully:', updatedTicket);
+            
+            // Update the ticket in our local array
+            const ticketIndex = allTickets.findIndex(t => t.id === ticket.id);
+            if (ticketIndex !== -1) {
+              allTickets[ticketIndex] = updatedTicket;
+            }
+            
+            // Refresh the display
+            filterTickets(currentFilter);
+            
+            // Close modal
+            document.getElementById('ticketModal').classList.add('hidden');
+            
+            alert('Ticket status updated successfully!');
+
+          } catch (error) {
+            console.error('Error updating ticket:', error);
+            alert('Error updating ticket: ' + error.message);
+          }
+        });
+
+        // Handle cancel button
+        document.getElementById('cancelUpdate').addEventListener('click', () => {
+          document.getElementById('ticketModal').classList.add('hidden');
+        });
+
+        document.getElementById('ticketModal').classList.remove('hidden');
+      }
+
+      // Filter tickets
+      function filterTickets(filter) {
+        currentFilter = filter;
+        
+        // Update filter buttons
+        document.querySelectorAll('[id^="filter"]').forEach(btn => {
+          btn.className = 'px-4 py-2 rounded-md text-sm font-medium transition bg-gray-100 text-gray-800 border border-gray-200 hover:bg-blue-100 hover:text-blue-800 hover:border-blue-200';
+        });
+        
+        const activeButton = document.getElementById(`filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
+        if (activeButton) {
+          activeButton.className = 'px-4 py-2 rounded-md text-sm font-medium transition bg-blue-100 text-blue-800 border border-blue-200';
+        }
+
+        let filteredTickets = allTickets;
+        if (filter !== 'all') {
+          filteredTickets = allTickets.filter(ticket => 
+            ticket.status.toLowerCase() === filter.toLowerCase()
+          );
+        }
+
+        displayTickets(filteredTickets);
+      }
+
+      // Display tickets
+      function displayTickets(tickets) {
+        const ticketsList = document.getElementById('ticketsList');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+
+        // Hide all states
+        loadingState.classList.add('hidden');
+        errorState.classList.add('hidden');
+        ticketsList.classList.add('hidden');
+        emptyState.classList.add('hidden');
+
+        if (tickets.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          ticketsList.innerHTML = tickets.map(createTicketCard).join('');
+          ticketsList.classList.remove('hidden');
+        }
+      }
+
+      // Load all tickets (managers can see all)
+      async function loadAllTickets() {
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const ticketsList = document.getElementById('ticketsList');
+        const emptyState = document.getElementById('emptyState');
+
+        try {
+          // Show loading state
+          loadingState.classList.remove('hidden');
+          errorState.classList.add('hidden');
+          ticketsList.classList.add('hidden');
+          emptyState.classList.add('hidden');
+
+          // Load tickets by status to get all tickets
+          const [pendingResponse, approvedResponse, deniedResponse] = await Promise.all([
+            fetch(`http://localhost:3000/tickets?status=Pending`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'current-user': userInfo.id
+              }
+            }),
+            fetch(`http://localhost:3000/tickets?status=Approved`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'current-user': userInfo.id
+              }
+            }),
+            fetch(`http://localhost:3000/tickets?status=Denied`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'current-user': userInfo.id
+              }
+            })
+          ]);
+
+          if (!pendingResponse.ok || !approvedResponse.ok || !deniedResponse.ok) {
+            throw new Error('Failed to load tickets');
+          }
+
+          const [pendingTickets, approvedTickets, deniedTickets] = await Promise.all([
+            pendingResponse.json(),
+            approvedResponse.json(),
+            deniedResponse.json()
+          ]);
+
+          allTickets = [...pendingTickets, ...approvedTickets, ...deniedTickets];
+          
+          // Filter and display tickets
+          filterTickets(currentFilter);
+
+        } catch (error) {
+          console.error('Error loading tickets:', error);
+          
+          // Show error state
+          loadingState.classList.add('hidden');
+          errorState.classList.remove('hidden');
+          document.getElementById('errorMessage').textContent = error.message;
+        }
+      }
+
+      // Event listeners
+      document.getElementById('filterAll').addEventListener('click', () => filterTickets('all'));
+      document.getElementById('filterPending').addEventListener('click', () => filterTickets('pending'));
+      document.getElementById('filterApproved').addEventListener('click', () => filterTickets('approved'));
+      document.getElementById('filterDenied').addEventListener('click', () => filterTickets('denied'));
+
+      document.getElementById('refreshTickets').addEventListener('click', loadAllTickets);
+
+      document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('ticketModal').classList.add('hidden');
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('ticketModal').addEventListener('click', (e) => {
+        if (e.target.id === 'ticketModal') {
+          document.getElementById('ticketModal').classList.add('hidden');
+        }
+      });
+
+      // Logout functionality
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = 'index.html';
+      });
+
+      // Load tickets on page load
+      loadAllTickets();
+    </script>
+  </body>
+</html>

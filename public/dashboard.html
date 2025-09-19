@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Dashboard - Ticketing System</title>
+  </head>
+  <body class="bg-gray-100">
+    <nav class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <h1 class="text-xl font-semibold text-gray-800">Ticketing System</h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a href="tickets.html" class="text-gray-600 hover:text-gray-800 transition">
+              My Tickets
+            </a>
+            <a href="profile.html" class="text-gray-600 hover:text-gray-800 transition">
+              Profile
+            </a>
+            <span class="text-gray-600" id="welcomeMessage">Welcome!</span>
+            <button 
+              id="logoutBtn"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div class="px-4 py-6 sm:px-0">
+        <div class="border-4 border-dashed border-gray-200 rounded-lg h-96 p-8">
+          <div class="text-center">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Dashboard</h2>
+            <p class="text-gray-600 mb-6">Welcome to your ticketing system dashboard!</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Create Ticket</h3>
+                <p class="text-gray-600 mb-4">Submit a new support ticket</p>
+                <a href="new-ticket.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition inline-block">
+                  New Ticket
+                </a>
+              </div>
+              
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">View Tickets</h3>
+                <p class="text-gray-600 mb-4">View all your tickets</p>
+                <a href="tickets.html" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition inline-block">
+                  View All
+                </a>
+              </div>
+              
+              <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Profile</h3>
+                <p class="text-gray-600 mb-4">Manage your account</p>
+                <a href="profile.html" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition inline-block">
+                  Profile
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        // Redirect to login if no token
+        window.location.href = 'index.html';
+      }
+
+      // Get user info from token
+      function getUserFromToken() {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          return payload;
+        } catch (error) {
+          console.error('Error decoding token:', error);
+          return null;
+        }
+      }
+
+      // Logout functionality
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = 'index.html';
+      });
+
+      // Check if user is a manager and redirect to manager dashboard
+      const userInfo = getUserFromToken();
+      if (userInfo && userInfo.role === 'Manager') {
+        window.location.href = 'manager-dashboard.html';
+      }
+
+      // You can add more dashboard functionality here
+      console.log('Dashboard loaded successfully!');
+    </script>
+  </body>
+</html>
